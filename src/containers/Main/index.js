@@ -1,38 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
-import axios from "axios";
+import { connect } from "react-redux";
+import { getTasks } from "../../redux/actions/tasks";
 import Card from "../../components/Card";
 import useStyles from "./styles";
 
-const Main = () => {
+const Main = props => {
   const classes = useStyles();
-  const [data, setData] = useState([]),
-    [searchData, setSearchData] = useState([]),
-    [loading, setLoading] = useState(false),
-    [error, setError] = useState(null),
-    [requestFilter, setRequest] = useState(""),
-    [clientFilter, setClient] = useState("");
+  const [requestFilter, setRequest] = useState(""),
+    [clientFilter, setClient] = useState(""),
+    [searchData, setSearchData] = useState([]);
 
   useEffect(() => {
-    setLoading(true);
-    axios
-      .get("http://www.mocky.io/v2/5e6774e73100008500230960")
-      .then(res => {
-        setData(res.data);
-        setSearchData(res.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err);
-        setLoading(false);
-      });
+    props.getTasks(data => setSearchData(data));
   }, []);
 
   const onRequestFilterChange = event => {
     const value = event.target.value;
     setRequest(value);
     setSearchData(
-      data.filter(item =>
+      props.data.filter(item =>
         item.number.toLowerCase().includes(value.trim().toLowerCase())
       )
     );
@@ -42,7 +29,7 @@ const Main = () => {
     const value = event.target.value;
     setClient(value);
     setSearchData(
-      data.filter(item =>
+      props.data.filter(item =>
         item.client.toLowerCase().includes(value.trim().toLowerCase())
       )
     );
@@ -73,11 +60,22 @@ const Main = () => {
         </div>
       </div>
       <div className={classes.dataContainer}>
-        {searchData &&
-          searchData.map(item => <Card key={item.id} item={item} />)}
+        {searchData.map(item => (
+          <Card key={item.id} item={item} />
+        ))}
       </div>
     </div>
   );
 };
 
-export default Main;
+const mapStateToProps = ({ tasks: { data, loading, error } }) => ({
+  data,
+  loading,
+  error
+});
+
+const mapDispatchToProps = {
+  getTasks
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Main);
